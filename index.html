@@ -94,10 +94,11 @@ button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-v
 .startcard .bigsess { font-family: var(--f-display); font-size: 40px; font-weight: 700; line-height: 1.05; margin-top: 4px; overflow-wrap: break-word; text-wrap: balance; }
 .startcard .pills { margin: 14px 0 8px; }
 .startcard .btn { margin-top: 14px; }
-.activebar { background: var(--tint); border-color: var(--accent); }
+.activebar { background: var(--tint); border-color: var(--accent); padding: 10px 14px; }
+.activebar h3 { font-size: 18px; }
 .timebox { text-align: right; flex: none; }
-.timebox b { display: block; font-family: var(--f-mono); font-weight: 500; font-size: 24px; line-height: 1.1; }
-.timebox span { font-size: 12px; color: var(--muted); }
+.timebox b { display: block; font-family: var(--f-mono); font-weight: 500; font-size: 15px; line-height: 1.2; color: var(--muted); }
+.timebox span { font-size: 11px; color: var(--muted); }
 .comp {
   min-height: 36px; padding: 0 14px; border-radius: 999px; border: 1.5px solid var(--ok); color: var(--ok); background: transparent;
   font-weight: 600; font-size: 13px; white-space: nowrap; flex: none;
@@ -239,6 +240,14 @@ a { color: var(--accent); }
   </div>
 </div>
 
+<div class="modal" id="mEnd">
+  <div class="sheet">
+    <h2>Terminare la sessione?</h2>
+    <p class="meta" id="endMsg"></p>
+    <div class="actions"><button class="btn" id="eCancel" type="button">Continua</button><button class="btn primary" id="eGo" type="button">Termina</button></div>
+  </div>
+</div>
+
 <div class="modal" id="mFeel">
   <div class="sheet">
     <h2>Come è andata?</h2>
@@ -258,7 +267,7 @@ a { color: var(--accent); }
   "use strict";
   var SHEET_ID = "1g_xSOwU9JxPezqQqMlmsBI6uAxq2whm2Fi6SEluV5Ww";
   var SHEET_URL = "https://docs.google.com/spreadsheets/d/" + SHEET_ID + "/edit";
-  var APP_BUILD = "02/11/2026 (4)";
+  var APP_BUILD = "02/11/2026 (5)";
   // Le chiavi hanno prefisso proprio: l'origine github.io è condivisa con gli altri progetti.
   var API_KEY = "palestra.api.v1", CACHE_KEY = "palestra.cache.v2", PENDING_KEY = "palestra.pending.v1", DONE_KEY = "palestra.done.v1", ACTIVE_KEY = "palestra.active.v1";
   var API_TIMEOUT = 40000, READ_RETRY = { readAll: 1 }, STALE_SESSION_MS = 8 * 3600 * 1000;
@@ -394,6 +403,13 @@ a { color: var(--accent); }
     var type = cfg.rientro.indexOf(n) >= 0 ? "rientro" : cfg.scarico.indexOf(n) >= 0 ? "scarico" : "piena";
     return { n: n, type: type, before: diff < 0, over: n > cfg.weeks };
   }
+  // Stima della durata: riscaldamento + per esercizio (serie × tempo sotto sforzo + recuperi tra le serie + cambio attrezzo). Arrotondata a 5 minuti.
+  var EST_WORK_S = 45, EST_SETUP_S = 90, EST_WARMUP_S = 300;
+  function estimateMin(items, type) {
+    var sec = EST_WARMUP_S;
+    items.forEach(function (p) { var n = setsFor(p, type); sec += n * EST_WORK_S + (n - 1) * p.rest + EST_SETUP_S; });
+    return Math.max(5, Math.round(sec / 60 / 5) * 5);
+  }
   function setsFor(p, type) {
     if (type === "rientro") return Math.max(1, p.sets - 1);
     if (type === "scarico") return Math.max(1, Math.ceil(p.sets / 2));
@@ -519,10 +535,17 @@ a { color: var(--accent); }
     var a = S.active; if (!a || S.ending) return;
     var items = S.plan.filter(function (p) { return p.s === a.s; });
     var unsaved = items.filter(function (p) { return !todayEntry(p.name); }).length;
-    if (!noEnd && unsaved && typeof confirm === "function" &&
-        !confirm(unsaved + (unsaved === 1 ? " esercizio non è stato salvato" : " esercizi non sono stati salvati") + ". Terminare comunque la sessione?")) return;
-    S.endReq = { at: Date.now(), noEnd: !!noEnd };
-    if (noEnd) return finishSession(null);
+    if (noEnd) { S.endReq = { at: Date.now(), noEnd: true }; return finishSession(null); }
+    // L'ora di fine è quella del tocco su "Termina sessione" in fondo alla pagina; la conferma serve solo a evitare tocchi per errore.
+    S.endAt = Date.now();
+    $("endMsg").textContent = "Durata finora: " + fmtDur(Math.max(1, Math.round((S.endAt - a.start) / 60000))) + "." +
+      (unsaved ? " " + unsaved + (unsaved === 1 ? " esercizio non è stato salvato" : " esercizi non sono stati salvati") + ": non finiranno nel foglio." : "");
+    $("mEnd").className = "modal open";
+  }
+  function confirmEnd() {
+    $("mEnd").className = "modal";
+    if (!S.active || S.ending) return;
+    S.endReq = { at: S.endAt || Date.now(), noEnd: false };
     openFeel();
   }
   function openFeel() {
@@ -556,6 +579,8 @@ a { color: var(--accent); }
   setInterval(function () {
     var el = S.active && $("elapsed");
     if (el) el.textContent = fmtElapsed(Date.now() - S.active.start);
+    var eta = !S.active && $("eta"); // ora di fine prevista se parti adesso: si aggiorna col passare dei minuti
+    if (eta && eta.dataset && eta.dataset.dur) eta.textContent = hhmm(Date.now() + Number(eta.dataset.dur) * 60000);
   }, 1000);
 
   /* ---------- aggiunta / eliminazione manuale di una sessione (sezione Dati) ---------- */
@@ -832,7 +857,9 @@ a { color: var(--accent); }
     ls.forEach(function (s) {
       h += '<button type="button" class="pill" data-pick="' + esc(s) + '" aria-pressed="' + (s === pick) + '">' + brkPill(s) + "<small>" + (s === sug ? "suggerita" : "&nbsp;") + "</small></button>";
     });
+    var est = estimateMin(items, w.type);
     h += '</div><div class="meta">' + items.length + " esercizi · " + totalSets + " serie</div>" +
+      '<div class="meta">Durata prevista circa ' + fmtDur(est) + ' · se parti ora finisci alle <b id="eta" data-dur="' + est + '">' + hhmm(Date.now() + est * 60000) + "</b></div>" +
       '<div class="meta">' + items.map(function (p) { return esc(p.name); }).join(" · ") + "</div>" +
       '<button type="button" class="btn primary big" data-act="startsess">Avvia sessione ' + esc(pick) + "</button></section>";
     return h;
@@ -851,7 +878,7 @@ a { color: var(--accent); }
     var totalSets = items.reduce(function (a, p) { return a + setsFor(p, w.type); }, 0);
     var h = weekBanner(w) + painAlert() + '<section class="card activebar"><div class="chead"><div><div class="meta">Sessione in corso</div><h3>' + esc(sessTitle(sess)) + "</h3>" +
       '<div class="meta">' + items.length + " esercizi · " + totalSets + ' serie</div></div><div class="timebox"><b id="elapsed">' + fmtElapsed(Date.now() - S.active.start) + "</b><span>da " + hhmm(S.active.start) + "</span></div></div>" +
-      '<div class="actions"><button type="button" class="btn" data-act="endsess">Termina sessione</button></div></section>';
+      '</section>';
     items.forEach(function (p, i) {
       var n = setsFor(p, w.type), last = lastEntry(p.name), done = todayEntry(p.name), dr = S.drafts[draftKey(p.s, p.name)] || {};
       var lastSets = last ? parseSets(last) : [], doneSets = done ? parseSets(done) : [];
@@ -1127,6 +1154,8 @@ a { color: var(--accent); }
   $("setupCancel").onclick = function () { $("mSetup").className = "modal"; };
   $("fGo").onclick = function () { finishSession(readFeel()); };
   $("fSkip").onclick = function () { finishSession(null); };
+  $("eCancel").onclick = function () { $("mEnd").className = "modal"; };
+  $("eGo").onclick = confirmEnd;
   $("fCancel").onclick = function () { S.endReq = null; $("mFeel").className = "modal"; };
   window.addEventListener("online", function () { if (S.api && !S.loading) flushPending(true).then(render); });
 
