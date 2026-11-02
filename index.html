@@ -76,7 +76,8 @@ button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-v
 .banner .row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
 .pills { display: flex; flex-wrap: wrap; gap: 8px; margin: 16px 0 6px; }
 .pill {
-  flex: 1 1 96px; min-height: 52px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface); padding: 4px 8px; line-height: 1.1; overflow-wrap: anywhere;
+  flex: 1 1 84px; min-height: 52px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface); padding: 4px 8px; line-height: 1.1;
+  overflow-wrap: break-word; word-break: normal; hyphens: manual; text-wrap: balance; /* a capo solo dopo il "+" (vedi brkPill), mai a metà parola */
   font-family: var(--f-display); font-size: 21px; font-weight: 700; position: relative;
 }
 .pill[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
@@ -90,7 +91,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-v
 .chead { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
 .chead h3 { flex: 1; min-width: 0; }
 .startcard { text-align: center; padding: 20px 14px; }
-.startcard .bigsess { font-family: var(--f-display); font-size: 40px; font-weight: 700; line-height: 1.05; margin-top: 4px; overflow-wrap: anywhere; }
+.startcard .bigsess { font-family: var(--f-display); font-size: 40px; font-weight: 700; line-height: 1.05; margin-top: 4px; overflow-wrap: break-word; text-wrap: balance; }
 .startcard .pills { margin: 14px 0 8px; }
 .startcard .btn { margin-top: 14px; }
 .activebar { background: var(--tint); border-color: var(--accent); }
@@ -257,7 +258,7 @@ a { color: var(--accent); }
   "use strict";
   var SHEET_ID = "1g_xSOwU9JxPezqQqMlmsBI6uAxq2whm2Fi6SEluV5Ww";
   var SHEET_URL = "https://docs.google.com/spreadsheets/d/" + SHEET_ID + "/edit";
-  var APP_BUILD = "02/11/2026 (3)";
+  var APP_BUILD = "02/11/2026 (4)";
   // Le chiavi hanno prefisso proprio: l'origine github.io è condivisa con gli altri progetti.
   var API_KEY = "palestra.api.v1", CACHE_KEY = "palestra.cache.v2", PENDING_KEY = "palestra.pending.v1", DONE_KEY = "palestra.done.v1", ACTIVE_KEY = "palestra.active.v1";
   var API_TIMEOUT = 40000, READ_RETRY = { readAll: 1 }, STALE_SESSION_MS = 8 * 3600 * 1000;
@@ -380,6 +381,8 @@ a { color: var(--accent); }
     var last = lastSessionInfo(); if (!last) return ls[0];
     return ls[(ls.indexOf(last.s) + 1) % ls.length];
   }
+  function brk(s) { return esc(s).replace(/\+/g, "+<wbr>"); } // punto di a capo consentito dopo il "+" (Spalle+Dorso → Spalle+ / Dorso)
+  function brkPill(s) { return esc(s).replace(/\+/g, "+<br>"); } // nei pulsanti: a capo sempre dopo il "+", così i tre pulsanti hanno lo stesso aspetto
   function sessTitle(s) { return String(s).length <= 2 ? "Sessione " + s : String(s); } // codici brevi (A, B) → "Sessione A"; nomi (Spalle) → così come sono
   function pickSession() { var ls = sessionsList(); return S.pick && ls.indexOf(S.pick) >= 0 ? S.pick : suggestSession(); }
   function curS() { return S.active ? S.active.s : null; }
@@ -823,11 +826,11 @@ a { color: var(--accent); }
     var ls = sessionsList(), sug = suggestSession(), pick = pickSession(), last = lastSessionInfo(), w = weekInfo();
     var items = S.plan.filter(function (p) { return p.s === pick; });
     var totalSets = items.reduce(function (a, p) { return a + setsFor(p, w.type); }, 0);
-    var h = weekBanner(w) + painAlert() + '<section class="card startcard"><div class="meta">' + (pick === sug ? "Sessione suggerita" : "Sessione scelta") + '</div><div class="bigsess">' + esc(sessTitle(pick)) + "</div>" +
+    var h = weekBanner(w) + painAlert() + '<section class="card startcard"><div class="meta">' + (pick === sug ? "Sessione suggerita" : "Sessione scelta") + '</div><div class="bigsess">' + brk(sessTitle(pick)) + "</div>" +
       '<div class="meta">' + (last ? "Ultima svolta: " + esc(last.s) + " il " + dmy(last.date) : "Nessuna sessione ancora registrata") + "</div>" +
       '<div class="pills" role="group" aria-label="Scegli sessione">';
     ls.forEach(function (s) {
-      h += '<button type="button" class="pill" data-pick="' + esc(s) + '" aria-pressed="' + (s === pick) + '">' + esc(s) + "<small>" + (s === sug ? "suggerita" : "&nbsp;") + "</small></button>";
+      h += '<button type="button" class="pill" data-pick="' + esc(s) + '" aria-pressed="' + (s === pick) + '">' + brkPill(s) + "<small>" + (s === sug ? "suggerita" : "&nbsp;") + "</small></button>";
     });
     h += '</div><div class="meta">' + items.length + " esercizi · " + totalSets + " serie</div>" +
       '<div class="meta">' + items.map(function (p) { return esc(p.name); }).join(" · ") + "</div>" +
@@ -898,7 +901,7 @@ a { color: var(--accent); }
     var cur = S.planSess && ls.indexOf(S.planSess) >= 0 ? S.planSess : (S.active ? S.active.s : suggestSession());
     var h = '<div class="pills" role="group" aria-label="Sessione">';
     ls.forEach(function (s) {
-      h += '<button type="button" class="pill" data-psess="' + esc(s) + '" aria-pressed="' + (s === cur) + '">' + esc(s) + "<small>" + (dayNames[sessionDay(s)] || "&nbsp;") + "</small></button>";
+      h += '<button type="button" class="pill" data-psess="' + esc(s) + '" aria-pressed="' + (s === cur) + '">' + brkPill(s) + "<small>" + (dayNames[sessionDay(s)] || "&nbsp;") + "</small></button>";
     });
     h += "</div>" + weekBanner(w);
     var items = S.plan.filter(function (p) { return p.s === cur; });
