@@ -267,7 +267,7 @@ a { color: var(--accent); }
   "use strict";
   var SHEET_ID = "1g_xSOwU9JxPezqQqMlmsBI6uAxq2whm2Fi6SEluV5Ww";
   var SHEET_URL = "https://docs.google.com/spreadsheets/d/" + SHEET_ID + "/edit";
-  var APP_BUILD = "02/11/2026 (5)";
+  var APP_BUILD = "02/11/2026 (6)";
   // Le chiavi hanno prefisso proprio: l'origine github.io è condivisa con gli altri progetti.
   var API_KEY = "palestra.api.v1", CACHE_KEY = "palestra.cache.v2", PENDING_KEY = "palestra.pending.v1", DONE_KEY = "palestra.done.v1", ACTIVE_KEY = "palestra.active.v1";
   var API_TIMEOUT = 40000, READ_RETRY = { readAll: 1 }, STALE_SESSION_MS = 8 * 3600 * 1000;
@@ -609,7 +609,12 @@ a { color: var(--accent); }
     var rec = null; S.sessLog.forEach(function (r) { if (r.row === row) rec = r; });
     S.delAsk = null;
     if (!rec || !rec.date) { render(); return; }
-    var expect = [pad(rec.date.getDate()) + "/" + pad(rec.date.getMonth() + 1) + "/" + rec.date.getFullYear(), rec.s];
+    // Il controllo del server confronta il testo mostrato nel foglio (il formato della data dipende dal foglio: 02/11/2026 o 2026-11-02):
+    // uso quindi la riga letta così com'è, e solo in mancanza (sessione appena aggiunta, non ancora riletta) la ricostruisco.
+    var rawOf = function () { var r = S.raw && S.raw.sess && S.raw.sess[row - 2]; return r && r[2] === rec.s && r[0] ? r : null; };
+    var raw = rawOf();
+    if (!raw) { try { S.raw = await gs("readAll"); applyModel(S.raw); raw = rawOf(); } catch (e) { /* ripiego sotto */ } } // sessione appena aggiunta: rileggo il foglio
+    var expect = raw ? [raw[0], raw[2]] : [pad(rec.date.getDate()) + "/" + pad(rec.date.getMonth() + 1) + "/" + rec.date.getFullYear(), rec.s];
     try {
       await gs("deleteRow", "Sessioni", row, expect);
       S.raw = await gs("readAll"); applyModel(S.raw);
