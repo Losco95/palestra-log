@@ -1530,5 +1530,557 @@
    "Spingere il mento in avanti invece di portare il petto verso la sbarra."
   ],
   "tip": "Se non arrivi a 6 reps usa elastico o macchina assistita: meglio reps pulite che reps rubate."
+ },
+ "Affondi bulgari": {
+  "id": "Split_Squat_with_Dumbbells",
+  "mus": "Quadricipiti, glutei (primari); femorali, adduttori (secondari)",
+  "prep": [
+   "Davanti a una panca, piede posteriore appoggiato (collo del piede) sulla panca, piede anteriore circa 60-80 cm avanti.",
+   "Manubri lungo i fianchi, busto eretto o leggermente inclinato in avanti, addome contratto.",
+   "Peso sul piede anteriore."
+  ],
+  "ex": [
+   "Scendi flettendo il ginocchio anteriore e il bacino, finché la coscia anteriore è parallela o poco sotto.",
+   "Il ginocchio anteriore resta in linea con la punta del piede, senza collassare all'interno.",
+   "Spingi sul tallone/centro piede anteriore per risalire, senza spingere con il piede posteriore.",
+   "Ripeti tutte le reps su un lato, poi cambia."
+  ],
+  "err": [
+   "Piede troppo vicino alla panca: il ginocchio va troppo avanti.",
+   "Spingere con il piede posteriore.",
+   "Busto troppo inclinato o schiena arrotondata.",
+   "Ginocchio che collassa verso l'interno."
+  ],
+  "tip": "Se sei instabile passa a hack squat o leg press a piedi stretti."
+ },
+ "Leg curl seduta": {
+  "id": "Seated_Leg_Curl",
+  "mus": "Femorali (primari); polpacci (secondari)",
+  "prep": [
+   "Siediti con le ginocchia allineate all'asse della macchina, cuscino sopra le caviglie.",
+   "Schiena appoggiata."
+  ],
+  "ex": [
+   "Fletti le ginocchia portando i talloni sotto di te.",
+   "Contrai per 1 secondo.",
+   "Torna in 3 secondi."
+  ],
+  "err": [
+   "Slancio.",
+   "Staccare la schiena.",
+   "Scendere di scatto."
+  ],
+  "tip": "Fase negativa lenta."
+ },
+ "Leg curl sdraiato": {
+  "id": "Lying_Leg_Curls",
+  "mus": "Femorali (primari); polpacci (secondari)",
+  "prep": [
+   "Sdraiato a pancia in giù sulla macchina, ginocchia appena oltre il bordo, cuscino sopra i talloni.",
+   "Impugna le maniglie, bacino aderente alla panca.",
+   "Regola il peso e l'altezza del cuscino."
+  ],
+  "ex": [
+   "Fletti le ginocchia portando i talloni verso i glutei.",
+   "Contrai in alto per 1 secondo.",
+   "Scendi in 3 secondi, lentamente, fino quasi all'estensione completa.",
+   "Non staccare il bacino."
+  ],
+  "err": [
+   "Sollevare il bacino dalla panca.",
+   "Slancio nella salita.",
+   "Scendere di scatto.",
+   "Carico troppo alto che accorcia il range."
+  ],
+  "tip": "La fase negativa lenta (3 secondi) è la parte più efficace."
+ },
+ "Alzate laterali": {
+  "id": "Side_Lateral_Raise",
+  "mus": "Deltoide laterale (primario); sovraspinato e trapezio superiore (secondari)",
+  "prep": [
+   "In piedi, piedi alla larghezza delle spalle, manubri lungo i fianchi con presa neutra.",
+   "Busto leggermente inclinato in avanti, gomiti leggermente flessi.",
+   "Spalle basse, addome contratto."
+  ],
+  "ex": [
+   "Solleva i manubri lateralmente, guidando con il gomito.",
+   "Fermati all'altezza delle spalle, polsi non più alti dei gomiti.",
+   "Scendi in 2-3 secondi, mantenendo la tensione.",
+   "Nell'ultima serie spingi fino al cedimento con tecnica pulita."
+  ],
+  "err": [
+   "Slancio del busto.",
+   "Polsi più alti dei gomiti.",
+   "Alzare le spalle verso le orecchie.",
+   "Carico troppo pesante."
+  ],
+  "tip": "Meglio due kg in meno e una tecnica pulita."
+ },
+ "Alzate laterali al cavo": {
+  "id": "Standing_Low-Pulley_Deltoid_Raise",
+  "mus": "Deltoide laterale (primario)",
+  "prep": [
+   "Puleggia bassa, maniglia nella mano opposta.",
+   "Busto leggermente inclinato in fuori."
+  ],
+  "ex": [
+   "Solleva lateralmente guidando con il gomito.",
+   "Scendi in 2-3 secondi."
+  ],
+  "err": [
+   "Slancio.",
+   "Polso più alto del gomito."
+  ],
+  "tip": "Scegli un lato e poi cambia."
+ },
+ "Lat machine": {
+  "id": "Wide-Grip_Lat_Pulldown",
+  "mus": "Dorsali (primari); bicipiti, romboidi, trapezio inferiore (secondari)",
+  "prep": [
+   "Cuscino sulle cosce, presa prona un po' più larga delle spalle, busto inclinato indietro di 10-15 gradi.",
+   "Braccia tese, petto alto, scapole leggermente sollevate."
+  ],
+  "ex": [
+   "Abbassa le scapole, poi tira i gomiti verso i fianchi portando la barra al petto alto.",
+   "Pausa breve in contrazione, poi risali lentamente a braccia tese.",
+   "Mantieni il busto fermo."
+  ],
+  "err": [
+   "Tirare la barra dietro il collo.",
+   "Oscillare con il busto per aiutarsi.",
+   "Tirare solo con le braccia, con le spalle alte."
+  ],
+  "tip": "Alternativa diretta alle trazioni: stessa presa, carico regolabile."
+ },
+ "Pulldown presa stretta": {
+  "id": "Close-Grip_Front_Lat_Pulldown",
+  "mus": "Dorsali (primari); bicipiti, brachioradiale, romboidi, trapezio inferiore (secondari)",
+  "prep": [
+   "Regola il cuscino sulle cosce, siediti con il petto alto e il busto leggermente inclinato indietro (10-15 gradi).",
+   "Maniglione neutro stretto, presa con pollici attorno.",
+   "Braccia tese, scapole leggermente sollevate (allungamento)."
+  ],
+  "ex": [
+   "Inizia abbassando le scapole, poi tira i gomiti verso i fianchi.",
+   "Porta il maniglione al petto alto, mantenendo il petto in avanti.",
+   "Pausa breve in contrazione, poi risali lentamente fino a braccia tese.",
+   "Mantieni il busto fermo, senza oscillare."
+  ],
+  "err": [
+   "Inclinarsi troppo indietro, trasformando il movimento in un rematore.",
+   "Tirare con le braccia e le spalle alte.",
+   "Tirare il maniglione troppo in basso, oltre il petto.",
+   "Rilasciare di colpo il cavo."
+  ],
+  "tip": "Immagina di spingere i gomiti giù e dentro le tasche."
+ },
+ "Push down ai cavi": {
+  "id": "Triceps_Pushdown_-_Rope_Attachment",
+  "mus": "Tricipiti, tutti e tre i capi (primari)",
+  "prep": [
+   "Puleggia alta con corda, afferra le estremità con presa neutra.",
+   "Piedi alla larghezza delle spalle, busto leggermente inclinato in avanti, gomiti vicino ai fianchi.",
+   "Avambracci all'inizio paralleli al pavimento o poco sopra."
+  ],
+  "ex": [
+   "Estendi i gomiti portando la corda verso il basso, mantenendo i gomiti fermi.",
+   "A fine corsa apri la corda verso l'esterno e contrai il tricipite.",
+   "Risali lentamente fino a 90 gradi circa, senza lasciare il carico.",
+   "Controlla la discesa: la fase eccentrica è parte del lavoro."
+  ],
+  "err": [
+   "Muovere le spalle o i gomiti avanti e indietro.",
+   "Inclinarsi troppo in avanti usando il peso del corpo.",
+   "Non estendere completamente i gomiti.",
+   "Carico troppo alto che trasforma il movimento in una spinta di spalle."
+  ],
+  "tip": "Pensa a spingere il pavimento con le mani, non a spingere il cavo."
+ },
+ "Curl manubri": {
+  "id": "Dumbbell_Alternate_Bicep_Curl",
+  "mus": "Bicipiti (primari); brachiale e avambracci (secondari)",
+  "prep": [
+   "In piedi, manubri lungo i fianchi, presa neutra o supina.",
+   "Gomiti vicini al busto, spalle indietro."
+  ],
+  "ex": [
+   "Fletti un gomito ruotando il polso fino a presa supina, portando il manubrio verso la spalla.",
+   "Contrai in alto e scendi in 3 secondi.",
+   "Alterna le braccia."
+  ],
+  "err": [
+   "Dondolare il busto.",
+   "Muovere i gomiti in avanti.",
+   "Estendere di scatto in discesa."
+  ],
+  "tip": "Bicipite sinistro: lavora con carico controllato e ferma la serie se compare dolore pungente."
+ },
+ "Curl al cavo": {
+  "id": "Standing_Biceps_Cable_Curl",
+  "mus": "Bicipiti (primari); brachiale, avambracci (secondari)",
+  "prep": [
+   "Barra o corda alla puleggia bassa, presa supina larghezza spalle.",
+   "Gomiti lungo i fianchi, spalle indietro, busto eretto."
+  ],
+  "ex": [
+   "Fletti i gomiti portando la barra verso le spalle.",
+   "Contrai in alto per 1 secondo.",
+   "Scendi in 3 secondi mantenendo la tensione del cavo."
+  ],
+  "err": [
+   "Dondolare il busto.",
+   "Portare i gomiti in avanti.",
+   "Perdere la tensione del cavo in basso."
+  ],
+  "tip": "Bicipite sinistro sensibile: carico moderato e ferma la serie al primo dolore pungente."
+ },
+ "Estensioni tricipiti sopra la testa manubrio": {
+  "id": "Standing_Dumbbell_Triceps_Extension",
+  "mus": "Tricipiti, capo lungo (primario)",
+  "prep": [
+   "In piedi o seduto con schienale, un manubrio tenuto a due mani sopra la testa, palmi sotto il disco.",
+   "Gomiti puntati in avanti e stretti."
+  ],
+  "ex": [
+   "Fletti i gomiti portando il manubrio dietro la testa.",
+   "Estendi i gomiti riportando il manubrio sopra la testa.",
+   "Discesa lenta in 2-3 secondi."
+  ],
+  "err": [
+   "Aprire i gomiti.",
+   "Inarcare la schiena.",
+   "Muovere le spalle."
+  ],
+  "tip": "Mantieni i gomiti fermi e verticali: il lavoro è tutto del tricipite."
+ },
+ "Affondi camminati manubri": {
+  "id": "Dumbbell_Lunges",
+  "mus": "Quadricipiti, glutei (primari); femorali, adduttori (secondari)",
+  "prep": [
+   "Manubri lungo i fianchi, busto eretto, addome contratto.",
+   "Spazio libero davanti a te."
+  ],
+  "ex": [
+   "Fai un passo ampio in avanti e scendi con il ginocchio posteriore verso il pavimento.",
+   "Spingi con il piede anteriore per portare avanti l'altra gamba.",
+   "Ripeti camminando."
+  ],
+  "err": [
+   "Passo troppo corto.",
+   "Ginocchio anteriore oltre le punte.",
+   "Busto che cade in avanti."
+  ],
+  "tip": "Nelle immagini gli affondi sono sul posto: la tecnica è la stessa."
+ },
+ "Stacco rumeno manubri": {
+  "id": "Stiff-Legged_Dumbbell_Deadlift",
+  "mus": "Femorali, glutei (primari); lombari, trapezio (secondari)",
+  "prep": [
+   "In piedi, manubri davanti alle cosce, piedi a spalla, ginocchia lievemente flesse.",
+   "Schiena neutra, petto alto."
+  ],
+  "ex": [
+   "Spingi il bacino indietro e scendi con i manubri lungo le cosce.",
+   "Fermati quando senti allungare i femorali.",
+   "Risali spingendo il bacino avanti."
+  ],
+  "err": [
+   "Arrotondare la schiena.",
+   "Piegare troppo le ginocchia.",
+   "Manubri lontani dal corpo."
+  ],
+  "tip": "Il movimento è di cerniera dell'anca, non uno squat."
+ },
+ "Adductor machine": {
+  "id": "Thigh_Adductor",
+  "mus": "Adduttori (primari); gracile e pettineo (secondari)",
+  "prep": [
+   "Regola l'apertura delle gambe in modo da partire da un allungamento comodo, senza forzare.",
+   "Schiena appoggiata allo schienale, piedi sui supporti."
+  ],
+  "ex": [
+   "Chiudi le gambe in modo controllato fino a unire i cuscinetti.",
+   "Fai una breve pausa in chiusura.",
+   "Torna lentamente in apertura senza far toccare i pesi."
+  ],
+  "err": [
+   "Usare lo slancio per chiudere.",
+   "Aprire troppo le gambe e partire da un allungamento doloroso.",
+   "Lasciar cadere il carico in apertura."
+  ],
+  "tip": "Aumenta il peso da una serie all'altra solo se mantieni la stessa pulizia."
+ },
+ "Squat bilanciere": {
+  "id": "Barbell_Squat",
+  "mus": "Quadricipiti, glutei (primari); adduttori, femorali, core (secondari)",
+  "prep": [
+   "Bilanciere sui trapezi, scapole strette, presa salda.",
+   "Piedi poco più larghi delle spalle, punte leggermente aperte.",
+   "Addome in tensione, sguardo avanti."
+  ],
+  "ex": [
+   "Inspira e inizia a scendere portando i fianchi indietro e in basso, con le ginocchia in linea con le punte dei piedi.",
+   "Scendi finché le cosce sono almeno parallele al pavimento, mantenendo la schiena neutra.",
+   "Spingi sui piedi e risali espirando, senza staccare i talloni."
+  ],
+  "err": [
+   "Ginocchia che cedono verso l'interno.",
+   "Talloni che si sollevano o schiena che si arrotonda in fondo.",
+   "Scendere poco per caricare di più."
+  ],
+  "tip": "Se non sei sicura della profondità, usa una panca come riferimento."
+ },
+ "Squat manubrio": {
+  "id": "Dumbbell_Squat",
+  "mus": "Quadricipiti, glutei (primari); adduttori, femorali, core (secondari)",
+  "prep": [
+   "Tieni un manubrio davanti al petto con entrambe le mani (goblet) oppure due manubri lungo i fianchi.",
+   "Piedi poco più larghi delle spalle, punte leggermente aperte."
+  ],
+  "ex": [
+   "Scendi portando i fianchi indietro e in basso, busto eretto.",
+   "Arriva almeno al parallelo con le cosce.",
+   "Risali spingendo sui piedi."
+  ],
+  "err": [
+   "Talloni che si sollevano.",
+   "Ginocchia che cadono verso l'interno.",
+   "Busto che si chiude in avanti."
+  ],
+  "tip": "Alternativa dello squat con bilanciere: stesso schema motorio, carico più gestibile."
+ },
+ "Iperestensioni": {
+  "id": "Hyperextensions_Back_Extensions",
+  "mus": "Erettori spinali, glutei, femorali (primari)",
+  "prep": [
+   "Regola il supporto sotto le anche, in modo da poter piegare il busto liberamente.",
+   "Piedi bloccati, corpo allineato dalla testa ai talloni; braccia incrociate al petto."
+  ],
+  "ex": [
+   "Scendi lentamente piegando il busto dalle anche, con la schiena neutra.",
+   "Risali contraendo glutei e lombari fino a riallineare il corpo.",
+   "Non andare oltre la linea del corpo in alto."
+  ],
+  "err": [
+   "Inarcare la schiena in alto (iperestensione).",
+   "Slanciarsi in risalita.",
+   "Scendere con la schiena arrotondata."
+  ],
+  "tip": "Per rendere l'esercizio più difficile tieni un disco al petto."
+ },
+ "Superman a terra": {
+  "id": "Superman",
+  "mus": "Erettori spinali, glutei (primari)",
+  "prep": [
+   "Sdraiata a pancia in giù su un tappetino, braccia tese in avanti e gambe distese."
+  ],
+  "ex": [
+   "Solleva contemporaneamente braccia e gambe di pochi centimetri, contraendo glutei e lombari.",
+   "Mantieni 1-2 secondi in alto.",
+   "Scendi lentamente senza appoggiare del tutto."
+  ],
+  "err": [
+   "Sollevare troppo e inarcare il collo.",
+   "Muoversi di slancio."
+  ],
+  "tip": "Alternativa alle iperestensioni se la panca è occupata."
+ },
+ "Lento avanti": {
+  "id": "Dumbbell_Shoulder_Press",
+  "mus": "Deltoidi anteriori e laterali, tricipiti (primari); trapezio superiore (secondari)",
+  "prep": [
+   "Seduta con schienale a 80-90 gradi, manubri (o bilanciere) all'altezza delle spalle.",
+   "Addome contratto, polsi sopra i gomiti."
+  ],
+  "ex": [
+   "Spingi in verticale fino a estendere quasi del tutto i gomiti.",
+   "Torna lentamente all'altezza delle spalle in 2-3 secondi."
+  ],
+  "err": [
+   "Inarcare la schiena per spingere.",
+   "Aprire troppo i gomiti.",
+   "Rimbalzare in basso."
+  ],
+  "tip": "Se usi il bilanciere, stai attenta a passare vicino al viso senza perdere la linea."
+ },
+ "Shoulder press manubri": {
+  "id": "Dumbbell_Shoulder_Press",
+  "mus": "Deltoidi anteriori e laterali, tricipiti (primari)",
+  "prep": [
+   "Seduta con schienale a 80-90 gradi, manubri all'altezza delle spalle.",
+   "Addome contratto, polsi sopra i gomiti."
+  ],
+  "ex": [
+   "Spingi in verticale fino a estendere quasi del tutto i gomiti.",
+   "Torna lentamente all'altezza delle spalle."
+  ],
+  "err": [
+   "Inarcare la schiena per spingere.",
+   "Aprire troppo i gomiti."
+  ],
+  "tip": ""
+ },
+ "Rematore con manubrio": {
+  "id": "One-Arm_Dumbbell_Row",
+  "mus": "Dorsali, romboidi (primari); bicipiti, deltoide posteriore (secondari)",
+  "prep": [
+   "Appoggia ginocchio e mano dello stesso lato sulla panca, schiena piatta e parallela al pavimento.",
+   "Manubrio nell'altra mano, braccio disteso."
+  ],
+  "ex": [
+   "Tira il manubrio verso l'anca portando il gomito indietro e vicino al corpo.",
+   "Contrai la scapola in alto per un secondo.",
+   "Scendi lentamente fino a braccio disteso."
+  ],
+  "err": [
+   "Ruotare il busto per tirare.",
+   "Tirare con il solo bicipite.",
+   "Non completare la discesa."
+  ],
+  "tip": "Esegui tutte le ripetizioni di un lato prima di cambiare."
+ },
+ "Rematore al cavo basso": {
+  "id": "Seated_Cable_Rows",
+  "mus": "Dorsali, romboidi (primari); bicipiti (secondari)",
+  "prep": [
+   "Seduta, piedi sulle pedane, ginocchia leggermente flesse.",
+   "Busto eretto, petto alto."
+  ],
+  "ex": [
+   "Tira la maniglia verso l'addome portando i gomiti indietro.",
+   "Contrai le scapole per un secondo.",
+   "Torna a braccia distese in modo controllato."
+  ],
+  "err": [
+   "Dondolare il busto.",
+   "Alzare le spalle verso le orecchie."
+  ],
+  "tip": ""
+ },
+ "Hip thrust": {
+  "id": "Barbell_Hip_Thrust",
+  "mus": "Glutei (primari); femorali, adduttori (secondari)",
+  "prep": [
+   "Schiena alta appoggiata a una panca, bilanciere sulle anche (usa un cuscino di protezione).",
+   "Piedi a terra, ginocchia a circa 90 gradi in alto, mento verso il petto."
+  ],
+  "ex": [
+   "Spingi sui talloni e solleva le anche fino ad allineare busto e cosce.",
+   "Contrai i glutei per un secondo in alto.",
+   "Scendi lentamente senza appoggiare il bacino."
+  ],
+  "err": [
+   "Inarcare i lombari in alto.",
+   "Spingere sulle punte dei piedi.",
+   "Ginocchia che cedono verso l'interno."
+  ],
+  "tip": "Se il bilanciere è occupato usa un manubrio o un disco sulle anche."
+ },
+ "Glute bridge a terra": {
+  "id": "Barbell_Glute_Bridge",
+  "mus": "Glutei (primari); femorali (secondari)",
+  "prep": [
+   "Sdraiata a terra, ginocchia flesse, piedi vicini ai glutei.",
+   "Carico (manubrio, disco o bilanciere) sulle anche, se lo usi."
+  ],
+  "ex": [
+   "Spingi sui talloni e solleva le anche fino ad allineare busto e cosce.",
+   "Contrai i glutei in alto per un secondo.",
+   "Scendi lentamente."
+  ],
+  "err": [
+   "Inarcare i lombari.",
+   "Spingere sulle punte."
+  ],
+  "tip": "Alternativa all'hip thrust se la panca è occupata."
+ },
+ "Stacchi rumeni (bilanciere)": {
+  "id": "Romanian_Deadlift",
+  "mus": "Femorali, glutei (primari); erettori spinali (secondari)",
+  "prep": [
+   "Bilanciere in mano a presa prona, piedi alla larghezza delle anche.",
+   "Ginocchia leggermente flesse e bloccate in quella posizione, schiena neutra."
+  ],
+  "ex": [
+   "Spingi i fianchi indietro facendo scendere il bilanciere lungo le cosce.",
+   "Scendi finché senti l'allungamento dei femorali, di solito sotto le ginocchia.",
+   "Risali contraendo i glutei e portando i fianchi avanti."
+  ],
+  "err": [
+   "Arrotondare la schiena.",
+   "Piegare troppo le ginocchia trasformandolo in uno stacco normale.",
+   "Tenere il bilanciere lontano dalle gambe."
+  ],
+  "tip": "Il movimento parte dall'anca: pensa a spingere il sedere indietro."
+ },
+ "Good mornings": {
+  "id": "Good_Morning",
+  "mus": "Femorali, glutei, erettori spinali (primari)",
+  "prep": [
+   "Bilanciere leggero sui trapezi, piedi alla larghezza delle spalle.",
+   "Ginocchia appena flesse, schiena neutra, addome contratto."
+  ],
+  "ex": [
+   "Spingi i fianchi indietro e inclina il busto in avanti fino a sentire l'allungamento dei femorali.",
+   "Risali contraendo i glutei fino a posizione eretta."
+  ],
+  "err": [
+   "Arrotondare la schiena.",
+   "Usare troppo carico.",
+   "Piegare le ginocchia per scendere."
+  ],
+  "tip": "Parti con un carico molto leggero: è un esercizio tecnico."
+ },
+ "Step ups": {
+  "id": "Dumbbell_Step_Ups",
+  "mus": "Quadricipiti, glutei (primari); femorali (secondari)",
+  "prep": [
+   "Step o panca ad altezza che porti il ginocchio a circa 90 gradi.",
+   "Manubri lungo i fianchi, busto eretto."
+  ],
+  "ex": [
+   "Appoggia tutto il piede sullo step e spingi con quella gamba per salire.",
+   "Raggiungi la posizione eretta e controlla la discesa.",
+   "Completa tutte le reps di una gamba, poi cambia."
+  ],
+  "err": [
+   "Spingersi con la gamba a terra.",
+   "Piede appoggiato solo a metà."
+  ],
+  "tip": "Più è alto lo step, più lavorano i glutei."
+ },
+ "Adduzioni al cavo basso": {
+  "id": "Cable_Hip_Adduction",
+  "mus": "Adduttori (primari)",
+  "prep": [
+   "Cavigliera al cavo basso, tienila alla gamba più lontana dalla macchina.",
+   "Tieniti a un appoggio con la mano e resta eretta."
+  ],
+  "ex": [
+   "Porta la gamba davanti all'altra, incrociando, con movimento controllato.",
+   "Torna lentamente alla posizione di partenza."
+  ],
+  "err": [
+   "Ruotare il busto.",
+   "Usare slancio."
+  ],
+  "tip": "Alternativa alla adductor machine se è occupata."
+ },
+ "Affondi indietro manubri": {
+  "id": "Dumbbell_Rear_Lunge",
+  "mus": "Quadricipiti, glutei (primari); femorali (secondari)",
+  "prep": [
+   "Manubri lungo i fianchi, piedi alla larghezza delle anche, busto eretto."
+  ],
+  "ex": [
+   "Fai un passo indietro e scendi con il ginocchio posteriore verso terra.",
+   "Mantieni il busto eretto e il ginocchio davanti in linea con il piede.",
+   "Spingi sul piede davanti per tornare in piedi."
+  ],
+  "err": [
+   "Busto che si inclina in avanti.",
+   "Ginocchio anteriore che cede verso l'interno."
+  ],
+  "tip": "Alternativa agli affondi bulgari: meno equilibrio richiesto."
  }
 }

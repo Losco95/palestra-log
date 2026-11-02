@@ -15,6 +15,9 @@
 (function () {
   var t = null;
   try { t = JSON.parse(localStorage.getItem("palestra.theme.v1")); } catch (e) {}
+  var c = null;
+  try { c = JSON.parse(localStorage.getItem("palestra.cfg.v1")); } catch (e) {}
+  if (["light", "dark", "pink"].indexOf(t) < 0 && c && ["light", "dark", "pink"].indexOf(c.theme) >= 0) t = c.theme;
   if (["light", "dark", "pink"].indexOf(t) < 0) t = window.matchMedia && matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
   document.documentElement.setAttribute("data-theme", t);
 })();
@@ -249,7 +252,7 @@ a { color: var(--accent); }
 <div class="wrap">
   <header class="top">
     <div>
-      <h1>Palestra</h1>
+      <h1 id="appname">Palestra</h1>
       <div class="weekline" id="weekline">Carico il piano dal foglio…</div>
     </div>
     <div class="sync">
@@ -293,12 +296,11 @@ a { color: var(--accent); }
 <div class="modal" id="mFeel">
   <div class="sheet">
     <h2>Come è andata?</h2>
-    <p class="meta">Quattro dati rapidi per regolare il piano. Puoi saltare.</p>
+    <p class="meta">Pochi dati rapidi per regolare il piano. Puoi saltare.</p>
     <div class="grid2">
       <div class="field"><label for="f-energy">Energia (1-5)</label><select id="f-energy"><option value="">–</option><option value="1">1 · a terra</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5 · al top</option></select></div>
       <div class="field"><label for="f-sleep">Sonno stanotte (ore)</label><input id="f-sleep" type="number" inputmode="decimal" step="0.5" min="0" max="14" placeholder="7,5"></div>
-      <div class="field"><label for="f-shoulder">Dolore spalle (0-3)</label><select id="f-shoulder"><option value="">–</option><option value="0">0 · niente</option><option value="1">1 · lieve</option><option value="2">2 · limita il carico</option><option value="3">3 · pungente</option></select></div>
-      <div class="field"><label for="f-bicep">Bicipite sinistro (0-3)</label><select id="f-bicep"><option value="">–</option><option value="0">0 · niente</option><option value="1">1 · lieve</option><option value="2">2 · limita il carico</option><option value="3">3 · pungente</option></select></div>
+      <span id="painFields" style="display:contents"></span>
     </div>
     <div class="actions"><button class="btn" id="fCancel" type="button">Torna alla sessione</button><button class="btn" id="fSkip" type="button">Salta</button><button class="btn primary" id="fGo" type="button">Salva sessione</button></div>
   </div>
@@ -307,13 +309,12 @@ a { color: var(--accent); }
 <script>
 (function () {
   "use strict";
-  var SHEET_ID = "1g_xSOwU9JxPezqQqMlmsBI6uAxq2whm2Fi6SEluV5Ww";
-  var SHEET_URL = "https://docs.google.com/spreadsheets/d/" + SHEET_ID + "/edit";
-  var APP_BUILD = "02/11/2026 (9)";
+  var SHEET_URL = ""; // dal foglio Config ("Link foglio")
+  var APP_BUILD = "03/11/2026 (10)";
   // Le chiavi hanno prefisso proprio: l'origine github.io è condivisa con gli altri progetti.
   var API_KEY = "palestra.api.v1", CACHE_KEY = "palestra.cache.v2", PENDING_KEY = "palestra.pending.v1", EX_KEY = "palestra.ex.v1", ACTIVE_KEY = "palestra.active.v1";
   var API_TIMEOUT = 40000, READ_RETRY = { readAll: 1 }, STALE_SESSION_MS = 8 * 3600 * 1000;
-  var RATE_LOW = 0.15, RATE_HIGH = 0.35;
+  var RATE_LOW = 0.15, RATE_HIGH = 0.35; // sovrascritti da Config
 
   var CAT_KEY = "palestra.cat.v1";
   var S = {
@@ -389,6 +390,25 @@ a { color: var(--accent); }
       daysPos: [6, 7, 8].map(function (i) { return rows[i] && rows[i][1] != null ? parseInt(rows[i][1], 10) || 0 : 0; }), // ripiego: giorni delle prime 3 sessioni per posizione
       kcalGoal: num(cv(/^Kcal obiettivo/i, 13)), protGoal: num(cv(/^Proteine obiettivo/i, 14))
     };
+    // Impostazioni facoltative: se la riga manca nel foglio vale il comportamento di sempre.
+    function has(re) { return rows.some(function (r) { return re.test(String(r[0] || "")); }); }
+    function txt(re) { return has(re) ? String(cv(re, -1) == null ? "" : cv(re, -1)).trim() : null; }
+    cfg.name = txt(/^Nome app/i) || "";
+    cfg.sheetUrl = txt(/^Link foglio/i) || "";
+    var th = (txt(/^Tema predefinito/i) || "").toLowerCase();
+    cfg.theme = th === "rosa" ? "pink" : th === "scuro" ? "dark" : th === "chiaro" ? "light" : "";
+    var secs = txt(/^Sezioni attive/i);
+    cfg.sections = secs == null || secs === "" ? null : secs.toLowerCase().split(/[;,]/).map(function (x) { return x.trim(); }).filter(Boolean);
+    var rl = num(cv(/^Ritmo peso minimo/i, -1)), rh = num(cv(/^Ritmo peso massimo/i, -1));
+    cfg.rateLow = rl == null ? 0.15 : rl; cfg.rateHigh = rh == null ? 0.35 : rh;
+    var zraw = txt(/^Zone fastidio/i);
+    if (zraw == null) cfg.zones = [{ label: "Spalle", short: "spalle", name: "spalle", advice: "riduci il carico su military press e Arnold press e tieni leggere le alzate laterali" }, { label: "Bicipite sinistro", short: "bic. sx", name: "bicipite sinistro", advice: "nei curl scala il carico e fermati al primo dolore pungente" }];
+    else cfg.zones = zraw.split(/[;,]/).map(function (x) { return x.trim(); }).filter(Boolean).slice(0, 8).map(function (z) {
+      var a = null; rows.forEach(function (r) { var m = /^Avviso fastidio\s+(.+)$/i.exec(String(r[0] || "").trim()); if (m && m[1].trim().toLowerCase() === z.toLowerCase()) a = String(r[1] || "").trim(); });
+      return { label: z, short: z.toLowerCase(), name: z.toLowerCase(), advice: a || "scala il carico e fermati al primo dolore pungente" };
+    });
+    cfg.painMin = parseInt(cv(/^Soglia avviso fastidio/i, -1), 10) || 2;
+    cfg.painTail = has(/^Testo avviso fastidio/i) ? txt(/^Testo avviso fastidio/i) : "Se dura più di 2 settimane o compare a riposo, fatti vedere da un fisioterapista o da un ortopedico.";
     var altCol = raw.alt || [];
     var plan = (raw.plan || []).map(function (r, i) { return { r: r, a: altCol[i] && altCol[i][0] ? String(altCol[i][0]) : "", sh: altCol[i] && altCol[i][1] ? parseInt(altCol[i][1], 10) || 0 : 0, ex: altCol[i] && altCol[i][2] ? String(altCol[i][2]).trim() : "" }; }).filter(function (x) { return x.r[2]; }).map(function (x) {
       var r = x.r;
@@ -411,7 +431,8 @@ a { color: var(--accent); }
       if (!r[2]) return;
       sess.push({
         row: i + 2, date: parseDMY(r[0]), week: parseInt(r[1], 10), s: r[2], start: r[3] || "", end: r[4] || "", dur: num(r[5] == null ? "" : r[5]),
-        energy: num(r[6] == null ? "" : r[6]), sleep: num(r[7] == null ? "" : r[7]), shoulder: num(r[8] == null ? "" : r[8]), bicep: num(r[9] == null ? "" : r[9])
+        energy: num(r[6] == null ? "" : r[6]), sleep: num(r[7] == null ? "" : r[7]),
+        pain: cfg.zones.map(function (z, k) { return num(r[8 + k] == null ? "" : r[8 + k]); })
       });
     });
     var nutr = [];
@@ -426,7 +447,27 @@ a { color: var(--accent); }
     if (raw.alt === undefined && S.raw && S.raw.alt) raw.alt = S.raw.alt;
     S.raw = raw; S.cfg = m.cfg; S.plan = m.plan; S.log = m.log; S.peso = m.peso; S.sessLog = m.sess; S.nutr = m.nutr;
     migrateActive();
+    applyChrome();
     if (!S.progEx || !S.plan.some(function (p) { return p.name === S.progEx; })) S.progEx = S.plan.length ? S.plan[0].name : null;
+  }
+  // Nome app, tema predefinito, sezioni visibili, link foglio e soglie: tutto letto da Config.
+  function applyChrome() {
+    var c = S.cfg; if (!c) return;
+    RATE_LOW = c.rateLow; RATE_HIGH = c.rateHigh; SHEET_URL = c.sheetUrl || "";
+    var name = c.name || "Palestra";
+    document.title = name; var h = $("appname"); if (h) h.textContent = name;
+    var m = document.querySelector('meta[name="apple-mobile-web-app-title"]'); if (m) m.setAttribute("content", name);
+    var map = { train: "oggi", plan: "scheda", progress: "progressi", weight: "peso", food: "dieta", data: "opzioni" };
+    document.querySelectorAll("nav.bottom button").forEach(function (b) {
+      var on = !c.sections || b.dataset.view === "data" || c.sections.indexOf(map[b.dataset.view]) >= 0;
+      b.style.display = on ? "" : "none";
+    });
+    if (c.sections && c.sections.indexOf(map[S.view]) < 0 && S.view !== "data") S.view = "train";
+    if (!load(THEME_KEY, null) && c.theme && THEME_COLOR[c.theme]) {
+      document.documentElement.setAttribute("data-theme", c.theme);
+      var tc = document.querySelector('meta[name="theme-color"]'); if (tc) tc.setAttribute("content", THEME_COLOR[c.theme]);
+    }
+    store("palestra.cfg.v1", { name: name, theme: c.theme });
   }
   // Sessione avviata prima della rinomina (A/B/C): la riallineo per posizione.
   function migrateActive() {
@@ -615,12 +656,16 @@ a { color: var(--accent); }
     openFeel();
   }
   function openFeel() {
-    ["f-energy", "f-sleep", "f-shoulder", "f-bicep"].forEach(function (id) { $(id).value = ""; });
+    var zs = S.cfg ? S.cfg.zones : [];
+    $("painFields").innerHTML = zs.map(function (z, k) {
+      return '<div class="field"><label for="f-pain' + k + '">' + esc(z.label) + ' (0-3)</label><select id="f-pain' + k + '"><option value="">–</option><option value="0">0 · niente</option><option value="1">1 · lieve</option><option value="2">2 · limita il carico</option><option value="3">3 · pungente</option></select></div>';
+    }).join("");
+    ["f-energy", "f-sleep"].forEach(function (id) { $(id).value = ""; });
     $("mFeel").className = "modal open";
   }
   function readFeel() {
     function iv(id, lo, hi) { var v = $(id).value; if (v === "" || v == null) return null; var n = num(v); return n == null || n < lo || n > hi ? null : n; }
-    return { energy: iv("f-energy", 1, 5), sleep: iv("f-sleep", 0, 14), shoulder: iv("f-shoulder", 0, 3), bicep: iv("f-bicep", 0, 3) };
+    return { energy: iv("f-energy", 1, 5), sleep: iv("f-sleep", 0, 14), pain: (S.cfg ? S.cfg.zones : []).map(function (z, k) { return iv("f-pain" + k, 0, 3); }) };
   }
   async function finishSession(feel) {
     var a = S.active, rq = S.endReq; if (!a || !rq || S.ending) return;
@@ -629,7 +674,7 @@ a { color: var(--accent); }
     function cell(x) { return x == null ? "" : x; }
     await saveExercises(end, noEnd);
     var dur = noEnd ? "" : Math.max(1, Math.round((end - a.start) / 60000));
-    var values = [iso(d0), a.week, a.s, "'" + hhmm(a.start), noEnd ? "" : "'" + hhmm(end), dur, cell(f.energy), cell(f.sleep), cell(f.shoulder), cell(f.bicep)];
+    var values = [iso(d0), a.week, a.s, "'" + hhmm(a.start), noEnd ? "" : "'" + hhmm(end), dur, cell(f.energy), cell(f.sleep)].concat((S.cfg ? S.cfg.zones : []).map(function (z, k) { return cell(f.pain ? f.pain[k] : null); }));
     var job = { sheet: "Sessioni", row: null, values: values, label: "Sessione " + a.s, key: uid() }, row = 0;
     try {
       row = await writeRow(job);
@@ -639,7 +684,7 @@ a { color: var(--accent); }
       S.error = errMsg(e); setStatus("err");
       toast("Sessione salvata sul telefono, da sincronizzare.");
     }
-    S.sessLog.push({ row: row, date: midnight(d0), week: a.week, s: a.s, start: hhmm(a.start), end: noEnd ? "" : hhmm(end), dur: dur === "" ? null : dur, energy: f.energy == null ? null : f.energy, sleep: f.sleep == null ? null : f.sleep, shoulder: f.shoulder == null ? null : f.shoulder, bicep: f.bicep == null ? null : f.bicep });
+    S.sessLog.push({ row: row, date: midnight(d0), week: a.week, s: a.s, start: hhmm(a.start), end: noEnd ? "" : hhmm(end), dur: dur === "" ? null : dur, energy: f.energy == null ? null : f.energy, sleep: f.sleep == null ? null : f.sleep, pain: (S.cfg ? S.cfg.zones : []).map(function (z, k) { return f.pain && f.pain[k] != null ? f.pain[k] : null; }) });
     S.active = null; store(ACTIVE_KEY, null); S.ending = false; S.endReq = null;
     clearWork();
     render(); window.scrollTo(0, 0);
@@ -661,7 +706,7 @@ a { color: var(--accent); }
     if (dur === 0) { toast("Fine uguale all'inizio."); return; }
     if (dur > 360) { toast("Durata oltre 6 ore: controlla gli orari."); return; }
     var wk = S.cfg && S.cfg.start ? Math.max(1, Math.floor(dayDiff(d, S.cfg.start) / 7) + 1) : 1;
-    var job = { sheet: "Sessioni", row: null, values: [iso(d), wk, s, "'" + t1, "'" + t2, dur, "", "", "", ""], label: "Sessione " + s, key: uid() }, row = 0;
+    var job = { sheet: "Sessioni", row: null, values: [iso(d), wk, s, "'" + t1, "'" + t2, dur, "", ""].concat((S.cfg ? S.cfg.zones : []).map(function () { return ""; })), label: "Sessione " + s, key: uid() }, row = 0;
     try {
       row = await writeRow(job);
       toast("Sessione " + s + " aggiunta: " + fmtDur(dur) + ".");
@@ -950,16 +995,16 @@ a { color: var(--accent); }
     var msg = S.cfg.msg[w.type] || "";
     return msg ? '<div class="banner' + (w.type === "scarico" ? " warn" : "") + '">' + esc(msg) + "</div>" : "";
   }
-  // Avviso se l'ultima sessione ha segnalato un fastidio da 2 in su (bicipite sinistro o spalle).
+  // Avviso se l'ultima sessione ha segnalato un fastidio pari o superiore alla soglia (zone e testi da Config).
   function painAlert() {
-    var last = null;
-    S.sessLog.forEach(function (x) { if (x.shoulder != null || x.bicep != null) last = x; });
+    var zs = S.cfg ? S.cfg.zones : [], last = null;
+    if (!zs.length) return "";
+    S.sessLog.forEach(function (x) { if ((x.pain || []).some(function (v) { return v != null; })) last = x; });
     if (!last) return "";
     var msg = [];
-    if (last.bicep >= 2) msg.push("bicipite sinistro " + last.bicep + "/3: nei curl scala il carico e fermati al primo dolore pungente");
-    if (last.shoulder >= 2) msg.push("spalle " + last.shoulder + "/3: riduci il carico su military press e Arnold press e tieni leggere le alzate laterali");
+    zs.forEach(function (z, k) { var v = last.pain[k]; if (v != null && v >= S.cfg.painMin) msg.push(z.name + " " + v + "/3: " + z.advice); });
     if (!msg.length) return "";
-    return '<div class="banner warn">Fastidio segnalato il ' + dmy(last.date) + ": " + esc(msg.join("; ")) + ". Se dura più di 2 settimane o compare a riposo, fatti vedere da un fisioterapista o da un ortopedico.</div>";
+    return '<div class="banner warn">Fastidio segnalato il ' + dmy(last.date) + ": " + esc(msg.join("; ")) + "." + (S.cfg.painTail ? " " + esc(S.cfg.painTail) : "") + "</div>";
   }
   function viewStart() {
     var ls = sessionsList(), sug = suggestSession(), pick = pickSession(), last = lastSessionInfo(), w = weekInfo();
@@ -1226,8 +1271,7 @@ a { color: var(--accent); }
     var p = [];
     if (r.energy != null) p.push("energia " + dash(r.energy));
     if (r.sleep != null) p.push("sonno " + dash(r.sleep) + " h");
-    if (r.shoulder != null) p.push("spalle " + r.shoulder);
-    if (r.bicep != null) p.push("bic. sx " + r.bicep);
+    (S.cfg ? S.cfg.zones : []).forEach(function (z, k) { if (r.pain && r.pain[k] != null) p.push(z.short + " " + r.pain[k]); });
     return p.length ? " · " + p.join(" · ") : "";
   }
   var THEME_KEY = "palestra.theme.v1", THEME_COLOR = { light: "#f3f4f6", dark: "#0e1217", pink: "#fdeef3" };
@@ -1244,9 +1288,9 @@ a { color: var(--accent); }
       [["light", "Chiaro"], ["dark", "Scuro"], ["pink", "Rosa"]].map(function (x) { return '<button type="button" class="btn" data-theme-pick="' + x[0] + '" aria-pressed="' + (t === x[0]) + '">' + x[1] + "</button>"; }).join("") + "</div></div>";
   }
   function viewData() {
-    var h = themeBox() + '<h2 class="sec">Dati</h2><div class="card"><div class="kv"><span>Archivio</span><span><a href="' + SHEET_URL + '" target="_blank" rel="noopener">Tracker Ipertrofia</a></span>' +
+    var h = themeBox() + '<h2 class="sec">Dati</h2><div class="card"><div class="kv">' + (SHEET_URL ? '<span>Archivio</span><span><a href="' + esc(SHEET_URL) + '" target="_blank" rel="noopener">Foglio Google</a></span>' : "") +
       "<span>Ultimo aggiornamento</span><span>" + (S.lastSync ? pad(S.lastSync.getDate()) + "/" + pad(S.lastSync.getMonth() + 1) + " " + pad(S.lastSync.getHours()) + ":" + pad(S.lastSync.getMinutes()) : "mai") + "</span>" +
-      "<span>Esercizi nel piano</span><span>" + S.plan.length + "</span><span>Esercizi registrati</span><span>" + S.log.length + "</span><span>Sessioni registrate</span><span>" + S.sessLog.length + "</span><span>Settimane di nutrizione</span><span>" + S.nutr.length + "</span><span>Voci da sincronizzare</span><span>" + S.pending.length + "</span>" +
+      "<span>Esercizi nel piano</span><span>" + S.plan.length + "</span><span>Esercizi registrati</span><span>" + S.log.length + "</span><span>Sessioni registrate</span><span>" + S.sessLog.length + "</span>" + (!S.cfg.sections || S.cfg.sections.indexOf("dieta") >= 0 ? "<span>Settimane di nutrizione</span><span>" + S.nutr.length + "</span>" : "") + "<span>Voci da sincronizzare</span><span>" + S.pending.length + "</span>" +
       "<span>Versione app</span><span>" + APP_BUILD + "</span></div>" +
       '<div class="actions"><button type="button" class="btn" data-act="reload">Aggiorna dal foglio</button><button type="button" class="btn" data-act="export">Esporta CSV su Drive</button></div>' +
       '<div class="actions"><button type="button" class="btn" data-act="relink">Collegamento</button><button type="button" class="btn" data-act="updapp">Aggiorna app</button></div>';
