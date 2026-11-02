@@ -168,6 +168,15 @@ select { font-family: var(--f-body); font-size: 16px; text-align: left; }
 details.note { margin-top: 10px; font-size: 14px; color: var(--muted); }
 details.note summary { cursor: pointer; font-weight: 600; }
 .tech { margin: 10px 0 0; font-size: 14px; color: var(--muted); }
+details.howto { margin-top: 10px; font-size: 14px; color: var(--muted); }
+details.howto summary { cursor: pointer; font-weight: 600; min-height: 32px; }
+.hgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 6px; }
+details.howto h4 { margin: 12px 0 4px; font-size: 13px; text-transform: uppercase; letter-spacing: .04em; color: var(--ink); }
+details.howto ul, details.howto ol { margin: 0; padding-left: 20px; }
+details.howto li { margin: 3px 0; }
+.hmus, .htip { margin: 8px 0 0; }
+.htip { padding: 8px 10px; border-radius: 8px; background: var(--bg); }
+.hgrid img { width: 100%; height: auto; border-radius: 10px; background: #fff; display: block; }
 nav.bottom {
   position: fixed; left: 0; right: 0; bottom: 0; z-index: 9; background: var(--surface); border-top: 1px solid var(--line);
   display: flex; justify-content: center;
@@ -300,13 +309,15 @@ a { color: var(--accent); }
   "use strict";
   var SHEET_ID = "1g_xSOwU9JxPezqQqMlmsBI6uAxq2whm2Fi6SEluV5Ww";
   var SHEET_URL = "https://docs.google.com/spreadsheets/d/" + SHEET_ID + "/edit";
-  var APP_BUILD = "02/11/2026 (7)";
+  var APP_BUILD = "02/11/2026 (9)";
   // Le chiavi hanno prefisso proprio: l'origine github.io è condivisa con gli altri progetti.
   var API_KEY = "palestra.api.v1", CACHE_KEY = "palestra.cache.v2", PENDING_KEY = "palestra.pending.v1", EX_KEY = "palestra.ex.v1", ACTIVE_KEY = "palestra.active.v1";
   var API_TIMEOUT = 40000, READ_RETRY = { readAll: 1 }, STALE_SESSION_MS = 8 * 3600 * 1000;
   var RATE_LOW = 0.15, RATE_HIGH = 0.35;
 
+  var CAT_KEY = "palestra.cat.v1";
   var S = {
+    cat: {},
     api: false, apiState: "init", error: null, loading: false, lastSync: null,
     cfg: null, plan: [], log: [], peso: [], sessLog: [], nutr: [], raw: null,
     view: "train", active: null, pick: null, planSess: null, ending: false, endReq: null, addForm: false, delAsk: null,
@@ -379,9 +390,9 @@ a { color: var(--accent); }
       kcalGoal: num(cv(/^Kcal obiettivo/i, 13)), protGoal: num(cv(/^Proteine obiettivo/i, 14))
     };
     var altCol = raw.alt || [];
-    var plan = (raw.plan || []).map(function (r, i) { return { r: r, a: altCol[i] && altCol[i][0] ? String(altCol[i][0]) : "", sh: altCol[i] && altCol[i][1] ? parseInt(altCol[i][1], 10) || 0 : 0 }; }).filter(function (x) { return x.r[2]; }).map(function (x) {
+    var plan = (raw.plan || []).map(function (r, i) { return { r: r, a: altCol[i] && altCol[i][0] ? String(altCol[i][0]) : "", sh: altCol[i] && altCol[i][1] ? parseInt(altCol[i][1], 10) || 0 : 0, ex: altCol[i] && altCol[i][2] ? String(altCol[i][2]).trim() : "" }; }).filter(function (x) { return x.r[2]; }).map(function (x) {
       var r = x.r;
-      return { short: x.sh, alts: x.a.split("|").map(parseAlt).filter(Boolean), s: r[0], o: parseInt(r[1], 10) || 0, name: r[2], sets: parseInt(r[3], 10) || 3, rmin: parseInt(r[4], 10) || 8, rmax: parseInt(r[5], 10) || 12, rest: parseInt(r[6], 10) || 90, note: r[7] || "", rir: String(r[9] || "") };
+      return { ex: x.ex, short: x.sh, alts: x.a.split("|").map(parseAlt).filter(Boolean), s: r[0], o: parseInt(r[1], 10) || 0, name: r[2], sets: parseInt(r[3], 10) || 3, rmin: parseInt(r[4], 10) || 8, rmax: parseInt(r[5], 10) || 12, rest: parseInt(r[6], 10) || 90, note: r[7] || "", rir: String(r[9] || "") };
     });
     var order = []; plan.forEach(function (p) { if (order.indexOf(p.s) < 0) order.push(p.s); });
     plan.sort(function (a, b) { return (order.indexOf(a.s) - order.indexOf(b.s)) || (a.o - b.o); }); // ordine delle sessioni = come compaiono nel foglio
@@ -538,7 +549,7 @@ a { color: var(--accent); }
     S.loading = true; setStatus("busy"); S.error = null;
     try {
       var raw = await gs("readAll");
-      try { raw.alt = (await gs("readRange", "Piano_Dati!K2:L100")) || []; } catch (e2) { raw.alt = (S.raw && S.raw.alt) || []; } // colonna K = alternative, colonna L = serie della versione breve
+      try { raw.alt = (await gs("readRange", "Piano_Dati!K2:M100")) || []; } catch (e2) { raw.alt = (S.raw && S.raw.alt) || []; } // colonna K = alternative, L = serie della versione breve, M = ExerciseId (immagini in img/)
       applyModel(raw);
       S.lastSync = new Date();
       store(CACHE_KEY, { raw: raw, at: S.lastSync.getTime() });
@@ -1038,6 +1049,7 @@ a { color: var(--accent); }
         h += '<div class="restslot" id="rest-' + i + '">' + restInner(i, p) + "</div>";
       }
       if (p.note && !e.alt) h += '<details class="note"><summary>Tecnica</summary><p>' + esc(p.note) + "</p></details>";
+      h += howTo(nm, e.alt ? "" : p0.ex);
       h += "</section>";
     });
     h += '<div class="actions"><button type="button" class="btn primary big" data-act="endsess">Termina sessione</button></div>';
@@ -1054,6 +1066,25 @@ a { color: var(--accent); }
     S.altOpen = null;
     if (next !== (e.alt || "")) { e.alt = next; e.sets = null; e.rir = null; persistEx(); } // nuovo esercizio: ripartono i valori precedenti suggeriti
     rerender();
+  }
+  // "Come si fa": immagini (inizio e fine del movimento, copia locale in img/<ExerciseId>/) e tecnica dal catalogo esercizi.json, cercato per nome.
+  // fid = ExerciseId dalla colonna M del foglio, usato solo se l'esercizio non è nel catalogo. label = titolo della riga (default "Come si fa").
+  function howTo(name, fid, label) {
+    var c = S.cat[name] || {}, id = c.id || fid || "";
+    if (id && !/^[\w.\-]+$/.test(id)) id = "";
+    if (!id && !c.prep) return "";
+    function ul(tag, arr) { return arr && arr.length ? "<" + tag + ">" + arr.map(function (x) { return "<li>" + esc(x) + "</li>"; }).join("") + "</" + tag + ">" : ""; }
+    var h = '<details class="howto"><summary>' + esc(label || "Come si fa") + "</summary>";
+    if (id) {
+      var src = "img/" + encodeURIComponent(id) + "/";
+      h += '<div class="hgrid">' + [0, 1].map(function (k) { return '<img src="' + src + k + '.jpg" alt="' + esc(name) + (k ? ", posizione finale" : ", posizione iniziale") + '" loading="lazy" onerror="this.style.display=\'none\'">'; }).join("") + "</div>";
+    }
+    if (c.mus) h += '<p class="hmus"><b>Muscoli:</b> ' + esc(c.mus) + "</p>";
+    if (c.prep) h += "<h4>Preparazione</h4>" + ul("ul", c.prep);
+    if (c.ex) h += "<h4>Esecuzione</h4>" + ul("ol", c.ex);
+    if (c.err) h += "<h4>Errori comuni</h4>" + ul("ul", c.err);
+    if (c.tip) h += '<p class="htip">' + esc(c.tip) + "</p>";
+    return h + "</details>";
   }
   function sessHasShort(sess) { return S.plan.some(function (p) { return p.s === sess && p.short > 0; }); }
   function viewPlan() {
@@ -1075,8 +1106,12 @@ a { color: var(--accent); }
         (rirRec ? '<div class="sc"><span>RIR</span><b>' + esc(rirRec) + "</b></div>" : "") + "</div>";
       h += last ? '<div class="last">Ultima volta (' + dmy(last.date) + "): <b>" + esc(fmtSets(last)) + "</b></div>" : '<div class="last">Mai registrato.</div>';
       if (p.note) h += '<p class="tech">' + esc(p.note) + "</p>";
+      h += howTo(p.name, p.ex);
       if (sessHasShort(cur)) h += '<p class="tech"><b>Breve:</b> ' + (p.short ? p.short + " serie" : "esclusa") + "</p>";
-      if (p.alts.length) h += '<p class="tech"><b>Alternative:</b> ' + esc(p.alts.map(function (a) { return a.name; }).join(" · ")) + "</p>";
+      if (p.alts.length) {
+        h += '<p class="tech"><b>Alternative:</b> ' + esc(p.alts.map(function (a) { return a.name; }).join(" · ")) + "</p>";
+        p.alts.forEach(function (a) { h += howTo(a.name, "", "Come si fa: " + a.name); });
+      }
       h += "</section>";
     });
     return h;
@@ -1320,7 +1355,16 @@ a { color: var(--accent); }
   window.addEventListener("online", function () { if (S.api && !S.loading) flushPending(true).then(render); });
 
   /* ---------- avvio ---------- */
+  async function loadCatalog() {
+    S.cat = load(CAT_KEY, {}) || {};
+    try {
+      var r = await fetch("esercizi.json", { cache: "no-cache" });
+      if (r.ok) { S.cat = await r.json(); store(CAT_KEY, S.cat); }
+    } catch (e) { /* offline: resta la copia salvata */ }
+  }
   async function boot() {
+    S.cat = load(CAT_KEY, {}) || {};
+    loadCatalog().then(function () { render(); });
     S.pending = load(PENDING_KEY, []);
     S.active = load(ACTIVE_KEY, null);
     var work = load(EX_KEY, null);
