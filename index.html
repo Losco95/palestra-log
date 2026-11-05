@@ -72,9 +72,16 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 .wrap { max-width: 640px; margin: 0 auto; }
 header.top {
   position: sticky; top: env(safe-area-inset-top, 0px); z-index: 9; background: var(--bg);
-  display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 0 10px;
+  display: flex; flex-direction: column; gap: 8px; padding: 12px 0 10px;
   border-bottom: 1px solid var(--line);
 }
+header.top .hrow { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.prog { display: flex; align-items: center; gap: 10px; }
+.prog .bar { flex: 1; height: 8px; border-radius: 999px; background: var(--line); overflow: hidden; }
+.prog .fill { height: 100%; width: 0; border-radius: 999px; background: var(--ok); }
+.prog span { font-family: var(--f-mono); font-size: 12px; color: var(--muted); white-space: nowrap; }
+.linkbtn { background: none; border: 0; padding: 4px 0; margin-left: 4px; font-size: 13px; color: var(--muted); text-decoration: underline; }
+@media (prefers-reduced-motion: no-preference) { .prog .fill { transition: width .25s; } }
 h1 { font-family: var(--f-display); font-weight: 700; font-size: 28px; letter-spacing: .01em; margin: 0; line-height: 1; }
 .weekline { font-size: 13px; color: var(--muted); margin-top: 3px; }
 .sync { display: flex; align-items: center; gap: 8px; }
@@ -242,6 +249,8 @@ tr:last-child td { border-bottom: 0; }
 .modal h2 { margin: 0 0 8px; font-family: var(--f-display); font-size: 24px; font-weight: 600; }
 .modal .err { color: var(--bad); font-size: 14px; min-height: 20px; margin-top: 8px; }
 .modal .actions { margin-top: 8px; }
+.rirpick { display: flex; gap: 8px; margin: 12px 0 8px; }
+.rirpick .pill { margin: 0; }
 [hidden] { display: none !important; }
 a { color: var(--accent); }
 @media (prefers-reduced-motion: no-preference) { .btn, .pill { transition: background .15s, border-color .15s; } }
@@ -251,6 +260,7 @@ a { color: var(--accent); }
 
 <div class="wrap">
   <header class="top">
+    <div class="hrow">
     <div>
       <h1 id="appname">Palestra</h1>
       <div class="weekline" id="weekline">Carico il piano dal foglio…</div>
@@ -259,6 +269,8 @@ a { color: var(--accent); }
       <span class="dot busy" id="dot"></span>
       <button class="btn small" id="refresh" type="button">Aggiorna</button>
     </div>
+    </div>
+    <div class="prog" id="prog" role="progressbar" aria-label="Esercizi completati" aria-valuemin="0" hidden><div class="bar"><div class="fill" id="progfill"></div></div><span id="progtxt"></span></div>
   </header>
   <div id="alerts"></div>
   <main id="view"></main>
@@ -293,6 +305,31 @@ a { color: var(--accent); }
   </div>
 </div>
 
+<div class="modal" id="mCancel">
+  <div class="sheet">
+    <h2>Annullare la sessione?</h2>
+    <p class="meta">Non viene salvato nulla nel foglio: né la sessione né gli esercizi già completati.</p>
+    <div class="actions"><button class="btn" id="cCancel" type="button">Torna alla sessione</button><button class="btn primary" id="cGo" type="button">Annulla sessione</button></div>
+  </div>
+</div>
+
+<div class="modal" id="mZero">
+  <div class="sheet">
+    <h2>Nessuna serie completata</h2>
+    <p class="meta">Hai avviato la sessione per sbaglio? Se la salvi comunque, nel foglio finisce una sessione senza esercizi.</p>
+    <div class="actions"><button class="btn" id="zCont" type="button">Continua</button><button class="btn" id="zSave" type="button">Salva comunque</button><button class="btn primary" id="zDiscard" type="button">Scarta</button></div>
+  </div>
+</div>
+
+<div class="modal" id="mRir">
+  <div class="sheet">
+    <h2>Ultima serie completata</h2>
+    <p class="meta" id="rirMsg"></p>
+    <div class="rirpick" id="rirPick" role="group" aria-label="RIR reale"></div>
+    <div class="actions"><button class="btn" id="rirCancel" type="button">Annulla</button><button class="btn primary" id="rirGo" type="button" disabled>Conferma</button></div>
+  </div>
+</div>
+
 <div class="modal" id="mFeel">
   <div class="sheet">
     <h2>Come è andata?</h2>
@@ -310,7 +347,7 @@ a { color: var(--accent); }
 (function () {
   "use strict";
   var SHEET_URL = ""; // dal foglio Config ("Link foglio")
-  var APP_BUILD = "03/11/2026 (10)";
+  var APP_BUILD = "05/11/2026 (11)";
   // Le chiavi hanno prefisso proprio: l'origine github.io è condivisa con gli altri progetti.
   var API_KEY = "palestra.api.v1", CACHE_KEY = "palestra.cache.v2", PENDING_KEY = "palestra.pending.v1", EX_KEY = "palestra.ex.v1", ACTIVE_KEY = "palestra.active.v1";
   var API_TIMEOUT = 40000, READ_RETRY = { readAll: 1 }, STALE_SESSION_MS = 8 * 3600 * 1000;
@@ -643,6 +680,8 @@ a { color: var(--accent); }
     var items = activeItems();
     var unsaved = items.filter(function (p) { return !exHasSets(p) && !todayEntry(exName(p)); }).length;
     if (noEnd) { S.endReq = { at: Date.now(), noEnd: true }; return finishSession(null); }
+    S.endAt = Date.now();
+    if (!items.some(exHasSets)) { $("mZero").className = "modal open"; return; } // nessuna serie completata: probabile avvio per sbaglio
     // L'ora di fine è quella del tocco su "Termina sessione" in fondo alla pagina; la conferma serve solo a evitare tocchi per errore.
     S.endAt = Date.now();
     $("endMsg").textContent = "Durata finora: " + fmtDur(Math.max(1, Math.round((S.endAt - a.start) / 60000))) + "." +
@@ -822,7 +861,30 @@ a { color: var(--accent); }
       if (j < rows.length - 1 && !e.done) startRest(idx, eff(p)); // recupero automatico, tranne dopo l'ultima serie
     }
     persistEx();
+    var allOk = Array.prototype.every.call(rows, function (rw) { return rw.querySelector("[data-chk]").getAttribute("aria-pressed") === "true"; });
     rerender();
+    if (!on && allOk && !e.done) askRir(idx); // ultima serie spuntata: chiedo il RIR e, confermato, completo l'esercizio
+  }
+  function askRir(idx) {
+    var p = activeItems()[idx], sel = $("rir-" + idx); if (!p || !sel) return;
+    S.rirIdx = idx; S.rirVal = sel.value;
+    $("rirMsg").textContent = exName(p) + ": quante ripetizioni avresti ancora potuto fare?";
+    paintRir();
+    $("mRir").className = "modal open";
+  }
+  function paintRir() {
+    var labels = ["cedimento", "", "", "", "4+"];
+    $("rirPick").innerHTML = [0, 1, 2, 3, 4].map(function (r) {
+      return '<button type="button" class="pill" data-rirpick="' + r + '" aria-pressed="' + (String(S.rirVal) === String(r)) + '">' + r + "<small>" + (labels[r] || "&nbsp;") + "</small></button>";
+    }).join("");
+    $("rirGo").disabled = S.rirVal === "" || S.rirVal == null;
+  }
+  function confirmRir() {
+    var idx = S.rirIdx; $("mRir").className = "modal";
+    if (idx == null || S.rirVal === "" || S.rirVal == null) return;
+    var sel = $("rir-" + idx); if (sel) sel.value = S.rirVal; // completeExercise rilegge il RIR dal campo della card
+    S.rirIdx = null;
+    completeExercise(idx);
   }
   function startExercise(idx) {
     var p = activeItems()[idx]; if (!p) return;
@@ -1037,7 +1099,7 @@ a { color: var(--accent); }
     var w = weekInfo(), sess = S.active.s, items = activeItems();
     var totalSets = items.reduce(function (a, p) { return a + setsFor(p, w.type); }, 0);
     var h = weekBanner(w) + painAlert() + '<section class="card activebar"><div class="chead"><div><div class="meta">Sessione in corso' + (S.active.short ? ' · versione breve' : '') + '</div><h3>' + esc(sessTitle(sess)) + "</h3>" +
-      '<div class="meta">' + items.length + " esercizi · " + totalSets + ' serie</div></div><div class="timebox"><b id="elapsed">' + fmtElapsed(Date.now() - S.active.start) + "</b><span>da " + hhmm(S.active.start) + "</span></div></div>" +
+      '<div class="meta">' + items.length + " esercizi · " + totalSets + ' serie · <button type="button" class="linkbtn" data-act="cancelask">Annulla sessione</button></div></div><div class="timebox"><b id="elapsed">' + fmtElapsed(Date.now() - S.active.start) + "</b><span>da " + hhmm(S.active.start) + "</span></div></div>" +
       '</section>';
     items.forEach(function (p0, i) {
       var p = eff(p0), e = S.ex[p0.name] || {}, nm = exName(p0), n = setsFor(p, w.type), last = lastEntry(nm), done = todayEntry(nm);
@@ -1308,8 +1370,18 @@ a { color: var(--accent); }
     h += '<p class="meta">Il piano (esercizi, serie, reps, recuperi, RIR, settimane di scarico) vive nel foglio. Se lo fai modificare a Claude, l\'app lo legge al prossimo avvio o con Aggiorna.</p>';
     return h;
   }
+  // Barra di avanzamento fissa in cima: esercizi completati sul totale della sessione in corso.
+  function renderProgress() {
+    var el = $("prog");
+    if (!S.active || !S.cfg || activeStale()) { el.hidden = true; return; }
+    var items = activeItems(), n = items.length, d = items.filter(function (p) { var e = S.ex[p.name]; return !!(e && e.done); }).length;
+    el.hidden = false;
+    el.setAttribute("aria-valuemax", n); el.setAttribute("aria-valuenow", d);
+    $("progfill").style.width = (n ? Math.round(d / n * 100) : 0) + "%";
+    $("progtxt").textContent = d + "/" + n + " esercizi";
+  }
   function render() {
-    renderAlerts(); renderWeekline();
+    renderAlerts(); renderWeekline(); renderProgress();
     var v = $("view");
     if (!S.cfg) { v.innerHTML = '<p class="empty">' + (S.loading ? "Carico il piano e lo storico dal foglio…" : "Nessun dato ancora caricato.") + "</p>"; }
     else v.innerHTML = S.view === "train" ? viewTrain() : S.view === "plan" ? viewPlan() : S.view === "progress" ? viewProgress() : S.view === "weight" ? viewWeight() : S.view === "food" ? viewFood() : viewData();
@@ -1352,6 +1424,7 @@ a { color: var(--accent); }
   document.addEventListener("click", function (ev) {
     var t = ev.target.closest("button"); if (!t) return;
     if (t.dataset.themePick) { applyTheme(t.dataset.themePick); return; }
+    if (t.dataset.rirpick != null) { S.rirVal = t.dataset.rirpick; paintRir(); return; }
     if (t.dataset.view) { S.view = t.dataset.view; render(); window.scrollTo(0, 0); return; }
     if (t.dataset.pick) { S.pick = t.dataset.pick; render(); return; }
     if (t.dataset.psess) { S.planSess = t.dataset.psess; render(); return; }
@@ -1381,6 +1454,7 @@ a { color: var(--accent); }
     else if (act === "endsess") endSession(false);
     else if (act === "endnoend") endSession(true);
     else if (act === "discard") discardSession();
+    else if (act === "cancelask") $("mCancel").className = "modal open";
     else if (act === "relink") { var a = apiCfg(); $("setupUrl").value = a ? a.url + (a.token ? "?token=" + a.token : "") : ""; showSetup("", true); }
     else if (act === "updapp") updateApp();
   });
@@ -1395,6 +1469,13 @@ a { color: var(--accent); }
   $("fSkip").onclick = function () { finishSession(null); };
   $("eCancel").onclick = function () { $("mEnd").className = "modal"; };
   $("eGo").onclick = confirmEnd;
+  $("cCancel").onclick = function () { $("mCancel").className = "modal"; };
+  $("cGo").onclick = function () { $("mCancel").className = "modal"; discardSession(); window.scrollTo(0, 0); toast("Sessione annullata: nulla è stato salvato."); };
+  $("zCont").onclick = function () { $("mZero").className = "modal"; };
+  $("zSave").onclick = function () { $("mZero").className = "modal"; confirmEnd(); };
+  $("zDiscard").onclick = function () { $("mZero").className = "modal"; discardSession(); window.scrollTo(0, 0); toast("Sessione scartata: nulla è stato salvato."); };
+  $("rirGo").onclick = confirmRir;
+  $("rirCancel").onclick = function () { S.rirIdx = null; $("mRir").className = "modal"; };
   $("fCancel").onclick = function () { S.endReq = null; $("mFeel").className = "modal"; };
   window.addEventListener("online", function () { if (S.api && !S.loading) flushPending(true).then(render); });
 
